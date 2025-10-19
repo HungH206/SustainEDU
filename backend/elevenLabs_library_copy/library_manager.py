@@ -22,7 +22,7 @@ def init_db():
 # 🔹 PATH CONFIGURATION
 # =====================================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # elevenLabs_library folder
-DB_PATH = os.path.join(BASE_DIR, "library.db")         # ✅ same as audio_manager.py
+DB_PATH = os.path.join(BASE_DIR, "library_data.db")         # ✅ same as audio_manager.py
 
 # =====================================================
 # 🔹 DISPLAY ALL SAVED AUDIO ENTRIES

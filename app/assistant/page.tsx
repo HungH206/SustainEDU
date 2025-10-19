@@ -1,7 +1,7 @@
 import { AppNavigation } from "../../components/app-navigation"
 import { FileSelector } from "../../components/assistant/file-selector"
 import { ChatInterface } from "../../components/workspace/chat-interface"
-import { NotePad } from "../../components/workspace/notepad"
+import NotePad from "../../components/workspace/notepad"
 
 export default function AssistantPage() {
   return (
@@ -24,6 +24,7 @@ export default function AssistantPage() {
         <div className="grid lg:grid-cols-2 gap-6">
           <ChatInterface />
           <NotePad />
+          
         </div>
       </main>
     </div>

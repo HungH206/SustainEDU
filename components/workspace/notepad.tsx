@@ -1,108 +1,70 @@
 "use client"
 
 import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
-import { Button } from "../ui/button"
-import { Textarea } from "../ui/textarea"
-import { Volume2, Pause, Loader2, Save } from "lucide-react"
+import Link from "next/link"
 
-export function NotePad() {
-  const [notes, setNotes] = useState("")
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false)
+export default function Notepad() {
+  const [text, setText] = useState("")
+  const [audioFile, setAudioFile] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
-  const handleListen = async () => {
-    if (isPlaying) {
-      setIsPlaying(false)
-      // Stop audio playback
-      return
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:5000"
+
+  const handleGenerate = async () => {
+    if (!text.trim()) return
+    setLoading(true)
+    setAudioFile(null)
+
+    try {
+      const res = await fetch(`${backendUrl}/api/audio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      if (res.ok && data.status === "success" && data.file_path) {
+        setAudioFile(data.file_path as string)
+      } else {
+        alert(data.message || "Failed to generate audio")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Error generating audio")
+    } finally {
+      setLoading(false)
     }
-
-    if (!notes.trim()) {
-      alert("Please write some notes first!")
-      return
-    }
-
-    setIsGenerating(true)
-
-    // Simulate ElevenLabs API call
-    setTimeout(() => {
-      setIsGenerating(false)
-      setIsPlaying(true)
-
-      // Simulate audio playback
-      setTimeout(() => {
-        setIsPlaying(false)
-      }, 5000)
-    }, 1500)
   }
 
-  const handleSave = () => {
-    console.log("[v0] Saving notes:", notes)
-    alert("Notes saved successfully!")
+  const handleDownload = () => {
+    if (!audioFile) return
+    window.open(`${backendUrl}/api/audio/download?path=${encodeURIComponent(audioFile)}`, "_blank")
   }
 
   return (
-    <Card className="flex flex-col h-[500px]">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Smart Notepad</CardTitle>
-            <CardDescription>Write notes and listen to AI-generated summaries</CardDescription>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleListen} disabled={isGenerating}>
-              {isGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : isPlaying ? (
-                <>
-                  <Pause className="h-4 w-4 mr-2" />
-                  Pause
-                </>
-              ) : (
-                <>
-                  <Volume2 className="h-4 w-4 mr-2" />
-                  Listen
-                </>
-              )}
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleSave}>
-              <Save className="h-4 w-4 mr-2" />
-              Save
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-6 pt-0">
-        <Textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Start writing your notes here... Click 'Listen' to hear an AI-generated audio summary using ElevenLabs."
-          className="flex-1 resize-none"
-        />
-        {isPlaying && (
-          <div className="mt-4 p-3 rounded-lg bg-primary/10 border border-primary/20">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-1 bg-primary rounded-full animate-pulse"
-                    style={{
-                      height: `${Math.random() * 20 + 10}px`,
-                      animationDelay: `${i * 0.1}s`,
-                    }}
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-primary font-medium">Playing audio summary...</p>
-            </div>
-          </div>
+    <div className="space-y-3">
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder="Enter text to convert with ElevenLabs…"
+        className="w-full h-40 border rounded p-2"
+      />
+      <div className="flex items-center gap-2">
+        <Link href="http://127.0.0.1:5000" className="px-3 py-2 border rounded inline-flex items-center">
+        {loading ? "Generating..." : "Generate Audio"}
+        </Link>
+        {audioFile && (
+          <>
+            <button onClick={handleDownload} className="px-3 py-2 border rounded">
+              Download Audio
+            </button>
+            <audio
+              controls
+              src={`${backendUrl}/api/audio/stream?path=${encodeURIComponent(audioFile)}`}
+              className="ml-2"
+            />
+          </>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }
