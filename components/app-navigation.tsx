@@ -25,12 +25,6 @@ const navItems = [
     icon: MessageSquare,
     description: "AI chat and notepad",
   },
-  {
-    name: "Reviews",
-    href: "/reviews",
-    icon: Brain,
-    description: "Flashcard practice",
-  },
 ]
 
 export function AppNavigation() {
