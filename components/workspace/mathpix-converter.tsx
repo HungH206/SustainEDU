@@ -69,9 +69,32 @@ export function MathpixConverter() {
   }
 
 
-  const exportAs = (format: "latex" | "pdf" | "doc") => {
-    alert(`Export as ${format.toUpperCase()} - Feature coming soon!`)
+  const exportAs = async (format: "latex" | "pdf" | "doc") => {
+  if (!convertedText) return
+  const apiBase = (process.env.NEXT_PUBLIC_MATHPIX_API_URL || "http://127.0.0.1:5000").replace(/\/+$/, "")
+  const endpoint = `${apiBase}/export/${format}`
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: convertedText }),
+  })
+
+  if (!response.ok) {
+    alert(`Failed to export ${format.toUpperCase()}`)
+    return
   }
+
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `mathpix_export.${format === "doc" ? "docx" : format}`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+}
+
 
   return (
     <Card>

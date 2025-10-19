@@ -1,10 +1,15 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from dotenv import load_dotenv
 import requests
 import os
 import base64
 import logging
+import tempfile
+from io import BytesIO
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from docx import Document
 
 # Load environment variables
 load_dotenv()
@@ -69,6 +74,55 @@ def convert_image():
         logging.exception("❌ Error converting image")
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/export/latex", methods=["POST"])
+def export_latex():
+    data = request.json
+    latex_content = data.get("text", "")
+    tex_bytes = BytesIO(latex_content.encode("utf-8"))
+    return send_file(
+        tex_bytes,
+        mimetype="application/x-tex",
+        as_attachment=True,
+        download_name="mathpix_export.tex"
+    )
 
+@app.route("/export/pdf", methods=["POST"])
+def export_pdf():
+    data = request.json
+    text = data.get("text", "")
+
+    pdf_bytes = BytesIO()
+    c = canvas.Canvas(pdf_bytes, pagesize=letter)
+    textobject = c.beginText(40, 750)
+    for line in text.split("\n"):
+        textobject.textLine(line)
+    c.drawText(textobject)
+    c.save()
+    pdf_bytes.seek(0)  # Important! Move pointer back to start
+
+    return send_file(
+        pdf_bytes,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name="mathpix_export.pdf"
+    )
+
+@app.route("/export/doc", methods=["POST"])
+def export_doc():
+    data = request.json
+    text = data.get("text", "")
+
+    doc_bytes = BytesIO()
+    doc = Document()
+    doc.add_paragraph(text)
+    doc.save(doc_bytes)
+    doc_bytes.seek(0)
+
+    return send_file(
+        doc_bytes,
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        as_attachment=True,
+        download_name="mathpix_export.docx"
+    )
 if __name__ == "__main__":
     app.run(debug=True)

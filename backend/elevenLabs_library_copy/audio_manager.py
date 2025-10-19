@@ -1,4 +1,5 @@
 # audio_manager.py
+# audio_manager.py
 from elevenlabs import ElevenLabs
 from dotenv import load_dotenv
 from datetime import datetime, timezone
@@ -19,8 +20,9 @@ client = ElevenLabs(api_key=API_KEY)
 # =====================================================
 # 🔹 DATABASE SETUP
 # =====================================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "library.db")  # stored inside elevenLabs_library folder
+DB_FOLDER = BASE_DIR
+os.makedirs(DB_FOLDER, exist_ok=True)  # ensures folder exists
+DB_PATH = os.path.join(DB_FOLDER, "library.db")\
 
 def init_db():
     """Ensure the SQLite database and table exist."""

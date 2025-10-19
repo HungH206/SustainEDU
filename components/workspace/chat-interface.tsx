@@ -15,20 +15,22 @@ interface Message {
   content: string
   timestamp: Date
 }
-
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
       content:
-        "Hello! I'm your AI learning assistant. Ask me anything about your notes, concepts, or request explanations.",
+        "Hello! I'm your AI learning assistant. Ask me anything or upload a file with a prompt.",
       timestamp: new Date(),
     },
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://127.0.0.1:5000"
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -44,21 +46,47 @@ export function ChatInterface() {
     setInput("")
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      const form = new FormData()
+      form.append("prompt", userMessage.content)
+      if (selectedFile) {
+        form.append("file", selectedFile, selectedFile.name)
+      }
+
+      const res = await fetch(`${backendUrl}/api/process_document`, {
+        method: "POST",
+        body: form,
+      })
+
+      const data = await res.json()
+      const content =
+        res.ok && data?.response_text
+          ? data.response_text
+          : `Error: ${data?.error || "Failed to get response"}`
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content:
-          "I understand your question. In a production environment, I would use Google AI to provide detailed explanations and summaries of your learning materials. For now, this is a simulated response to demonstrate the chat interface.",
+        content,
         timestamp: new Date(),
       }
       setMessages((prev) => [...prev, aiMessage])
+    } catch (err: any) {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: `Error contacting backend: ${err?.message || String(err)}`,
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, aiMessage])
+    } finally {
       setIsLoading(false)
-    }, 1500)
+      setSelectedFile(null)
+      if (fileInputRef.current) fileInputRef.current.value = ""
+    }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -68,8 +96,8 @@ export function ChatInterface() {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) return
-
     const file = files[0]
+    setSelectedFile(file)
 
     const fileMessage: Message = {
       id: Date.now().toString(),
@@ -77,113 +105,64 @@ export function ChatInterface() {
       content: `📄 Uploaded: ${file.name} (${Math.round(file.size / 1024)} KB)`,
       timestamp: new Date(),
     }
-
     setMessages((prev) => [...prev, fileMessage])
-
-    // Optional: you can send this file to a backend or store it in state
-    // Reset input
-    if (fileInputRef.current) fileInputRef.current.value = ""
   }
 
   return (
     <Card className="flex flex-col h-[500px]">
       <CardHeader>
         <CardTitle>AI Chat Assistant</CardTitle>
-        <CardDescription>
-          Ask questions and get AI-powered explanations
-        </CardDescription>
+        <CardDescription>Ask questions or upload a document with your prompt</CardDescription>
       </CardHeader>
+
       <CardContent className="flex-1 flex flex-col p-0">
         <ScrollArea className="flex-1 px-6">
           <div className="space-y-4 py-4">
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex gap-3 ${
-                  message.role === "user"
-                    ? "justify-end"
-                    : "justify-start"
-                }`}
-              >
-                {message.role === "assistant" && (
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Bot className="h-5 w-5 text-primary" />
-                  </div>
-                )}
-                <div
-                  className={`rounded-lg px-4 py-2 max-w-[80%] ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : message.role === "file"
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-muted"
-                  }`}
-                >
-                  <p className="text-sm">{message.content}</p>
-                </div>
-                {message.role === "user" && (
-                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                    <User className="h-5 w-5 text-primary-foreground" />
-                  </div>
-                )}
+            {messages.map((m) => (
+              <div key={m.id} className="text-sm">
+                <span className="font-medium mr-2">
+                  {m.role === "user" ? "You" : m.role === "assistant" ? "Assistant" : "File"}
+                </span>
+                <span>{m.content}</span>
               </div>
             ))}
-            {isLoading && (
-              <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Bot className="h-5 w-5 text-primary" />
-                </div>
-                <div className="rounded-lg px-4 py-2 bg-muted">
-                  <div className="flex gap-1">
-                    <div className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce" />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    />
-                    <div
-                      className="h-2 w-2 rounded-full bg-muted-foreground/50 animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </ScrollArea>
 
-        <div className="p-4 border-t border-border">
-          <div className="flex gap-2 items-center">
-            {/* Upload File Button */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-            <Button
-              variant="ghost"
-              onClick={() => fileInputRef.current?.click()}
-              type="button"
-              size="icon"
-            >
-              <UploadCloud className="h-5 w-5" />
-            </Button>
+        <div className="p-4 border-t border-border flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileUpload}
+            accept=".pdf,.png,.jpg,.jpeg"
+          />
+          <button
+            type="button"
+            className="px-3 py-2 border rounded"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+          >
+            Attach
+          </button>
 
-            {/* Chat Input */}
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask a question about your notes..."
-              disabled={isLoading}
-            />
-            <Button
-              onClick={handleSend}
-              disabled={isLoading || !input.trim()}
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+          <textarea
+            className="flex-1 px-3 py-2 border rounded min-h-[44px]"
+            placeholder="Type your question..."
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+            disabled={isLoading}
+          />
+
+          <button
+            type="button"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded disabled:opacity-50"
+            onClick={handleSend}
+            disabled={isLoading || !input.trim()}
+          >
+            {isLoading ? "Sending..." : "Send"}
+          </button>
         </div>
       </CardContent>
     </Card>
