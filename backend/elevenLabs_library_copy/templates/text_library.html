@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>📚 Text Library</title>
+</head>
+<body>
+    <h1>🗒️ Your Saved Text Entries</h1>
+
+    {% if rows %}
+    <table border="1" cellpadding="8">
+        <tr><th>Order</th><th>Text</th><th>Created At</th></tr>
+        {% for row in rows %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No text entries found yet.</p>
+    {% endif %}
+
+    <br>
+    <a href="{{ url_for('index') }}">⬅️ Back to Home</a>
+</body>
+</html>

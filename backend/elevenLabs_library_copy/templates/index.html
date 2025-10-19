@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎧 ElevenLabs + Text Library</title>
+</head>
+<body>
+    <h1>🎙️ Text to Speech + Notes</h1>
+    <form method="POST">
+        <textarea name="text" rows="3" cols="60" placeholder="Enter text here..." required>{{ text }}</textarea><br><br>
+        <button type="submit" name="convert">Convert to Audio</button>
+        <button type="submit" name="save_text">Save Text</button>
+    </form>
+
+    {% if audio_file %}
+        <h3>✅ Audio Generated:</h3>
+        <audio controls>
+            <source src="{{ url_for('audio', filename=audio_file) }}" type="audio/wav">
+        </audio>
+    {% endif %}
+
+    <br><br>
+    <a href="{{ url_for('text_library') }}">📚 View Saved Texts</a>
+</body>
+</html>

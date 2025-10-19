@@ -1,0 +1,106 @@
+# =======================================
+# GLOBAL
+# =======================================
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pip-log.txt
+
+# IDE and Editor folders
+.vscode/
+.idea/
+*.swp
+
+# =======================================
+# FRONTEND (React / Next.js)
+# =======================================
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.cache/
+coverage/
+
+# Static exports
+*.tsbuildinfo
+
+# Dependency locks (optional, uncomment if using different package managers)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# =======================================
+# BACKEND (Flask / Python)
+# =======================================
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg
+*.egg-info/
+.eggs/
+instance/
+.wheels/
+
+# Flask
+*.db
+*.sqlite3
+migrations/
+uploads/
+flask_session/
+*.bak
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+__pypackages__/
+
+# =======================================
+# TESTS / COVERAGE
+# =======================================
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+test-results/
+
+# =======================================
+# DEPLOYMENT / BUILD TOOLS
+# =======================================
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# AWS / Firebase / Amplify / Vercel
+.amplify/
+.vercel/
+firebase-debug.log
+.vscode/settings.json

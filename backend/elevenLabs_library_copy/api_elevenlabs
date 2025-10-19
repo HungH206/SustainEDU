@@ -1,0 +1,23 @@
+
+from elevenlabs import ElevenLabs
+
+# initialize the modern client (works for all plan types)
+client = ElevenLabs(api_key="sk_eec6c9aed7703dcb37f239e429a40f17d868e5f0a11c59e3")
+
+# Use the known voice_id directly (Rachel)
+voice_id = "21m00Tcm4TlvDq8ikWAM"
+text = input("🎙️ Enter text you want to convert to speech: ").strip()
+# Convert text to speech
+audio_stream = client.text_to_speech.convert(
+    voice_id=voice_id,
+    model_id="eleven_turbo_v2",
+    text=text
+)
+
+# Save to a file
+with open("output.wav", "wb") as f:
+    for chunk in audio_stream:
+        f.write(chunk)
+
+print("✅ Done — output.wav created successfully!")
+
