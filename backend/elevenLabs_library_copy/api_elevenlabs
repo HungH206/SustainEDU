@@ -2,7 +2,7 @@
 from elevenlabs import ElevenLabs
 
 # initialize the modern client (works for all plan types)
-client = ElevenLabs(api_key="sk_eec6c9aed7703dcb37f239e429a40f17d868e5f0a11c59e3")
+client = ElevenLabs(api_key="")
 
 # Use the known voice_id directly (Rachel)
 voice_id = "21m00Tcm4TlvDq8ikWAM"
@@ -20,4 +20,5 @@ with open("output.wav", "wb") as f:
         f.write(chunk)
 
 print("✅ Done — output.wav created successfully!")
+
 
